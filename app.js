@@ -12,9 +12,9 @@ var express = require("express"),
     localMongoose = require("passport-local-mongoose"),
     User = require("./models/user");
     
-var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
-mongoose.connect(url);
-//mongoose.connect("mongodb://kiran:yelpcamp@ds161890.mlab.com:61890/pabbu_yelpcamp");
+//var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
+//mongoose.connect(url);
+mongoose.connect("mongodb://kiran:yelpcamp@ds161890.mlab.com:61890/pabbu_yelpcamp");
 app.set("view engine", "ejs");
 var bodyParser = require("body-parser");
 
