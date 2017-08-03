@@ -222,6 +222,7 @@ function isLoggedIn(req, res, next)
     res.redirect("/login");
 }
 
+
 // LOGOUT ROUTE
 app.get("/logout", function(req, res){
     req.logout();
