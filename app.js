@@ -10,22 +10,25 @@ var express = require("express"),
     passport = require("passport"),
     localAuth = require("passport-local"),
     localMongoose = require("passport-local-mongoose"),
-    User = require("./models/user");
+    User = require("./models/user"),
+    expressJwt = require("express-jwt"),
+    jwt = require("jsonwebtoken");
     
 //var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
 //mongoose.connect(url);
-mongoose.connect("mongodb://kiran:yelpcamp@ds161890.mlab.com:61890/pabbu_yelpcamp");
+mongoose.connect("mongodb://pabbu:yelpcamp@ds125113.mlab.com:25113/angular-yelpcamp");
 app.set("view engine", "ejs");
 var bodyParser = require("body-parser");
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", '*');
     res.header("Access-Control-Allow-Credentials", true);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS, HEAD');
+    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json,Authorization');
     next();
 });
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(expressJwt({secret: 'pabbudamustang'}).unless({path:['/login', '/signup', '/campgrounds']}));
 app.use(bodyParser.json());
 app.use(methodOverride("_method"));
 app.use(flash());
@@ -76,28 +79,19 @@ app.get("/campgrounds", function(req, res){
 });
 
 app.post("/campgrounds", function(req, res){
-    //console.log(req);
     Campground.create({name: req.body.name, image: req.body.image, description: req.body.description}, function(err, campground){
        if(err){
            console.log("An error occured: "+err);
            res.send(err);
        } 
        else{
-           //campground.author.id = req.user._id;
-           //campground.author.username= req.user.username;
            campground.save();
-           console.log("campground from angular UI created"+campground);
-           //res.send(JSON.stringify(req));
-       }
+            }
     });
     
 });
 
-app.get("/campgrounds/new", isLoggedIn, function(req, res){
-    res.render("new");
-});
-
-app.post("/campgrounds/:id", isLoggedIn, function(req, res){
+app.post("/campgrounds/:id", function(req, res){
     Campground.findById(req.params.id, function(err, foundCampground){
         if(err)
         {
@@ -123,21 +117,6 @@ app.post("/campgrounds/:id", isLoggedIn, function(req, res){
     })
         }
     })
-    
-});
-
-app.get("/campgrounds/:id/edit", isLoggedIn, function(req, res){
-     Campground.findById(req.params.id, function(err, foundCampground){
-        if(err)
-        {
-            console.log(err);
-            
-        }
-        else
-        {
-        res.render("edit", {campground: foundCampground});
-        }
-     });
     
 });
 
@@ -174,24 +153,7 @@ app.delete("/campgrounds/:id", function(req, res){
     
 });
 
-app.get("/campgrounds/:id", function(req, res){
-    Campground.findById(req.params.id).populate("comments").exec(function(err, body){
-        if(err){
-            console.log("An error occured: "+err);
-        }
-        else{
-                res.render("show", {campgrounds: body});   
-                }
-    });
-    
-});
-
-
 //SIGN UP ROUTES
-
-app.get("/signup", function(req, res){
-    res.render("signup");
-});
 
 app.post("/signup", function(req, res){
     User.register(new User({username: req.body.username}), req.body.password, function(err, user){
@@ -209,33 +171,11 @@ app.post("/signup", function(req, res){
 
 //LOGIN ROUTES
 
-app.get("/login", function(req, res){
-    res.render("login");
+app.post('/login', passport.authenticate('local'), function(req, res) {
+    console.log('valid nigga');
+    var myToken = jwt.sign({username: req.body.username}, 'pabbudamustang');
+    res.status(200).json(myToken);
 });
-
-app.post("/login", passport.authenticate("local", {
-    successRedirect: "/",
-    failureRedirect: "/login"
-}), function(req, res){
-    
-});
-
-function isLoggedIn(req, res, next)
-{
-    if(req.isAuthenticated()){
-        return next();
-    }
-    req.flash("oops", "Please login!");
-    res.redirect("/login");
-}
-
-
-// LOGOUT ROUTE
-app.get("/logout", function(req, res){
-    req.logout();
-    req.flash("success", "You have successfully logged out");
-    res.redirect("/login");
-})
 
 app.listen(process.env.PORT, process.env.IP, function(){
     console.log("YelpCamp server has started");
