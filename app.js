@@ -56,15 +56,7 @@ app.use(flash());
     next();
     })
 
-//seedDB();
-app.get("/", function(req, res){
-    res.redirect("/campgrounds");
-});
-
-app.get("/display", function(req, res){
-    res.send("You got it");
-});
-
+//ROUTES
 app.get("/campgrounds", function(req, res){
     Campground.find({}, function(err, body){
        if(err){
@@ -86,12 +78,17 @@ app.post("/campgrounds", function(req, res){
        } 
        else{
            campground.save();
-            }
+           console.log("campground from angular UI created"+campground);
+       }
     });
     
 });
 
-app.post("/campgrounds/:id", function(req, res){
+app.get("/campgrounds/new", isLoggedIn, function(req, res){
+    res.render("new");
+});
+
+app.post("/campgrounds/:id", isLoggedIn, function(req, res){
     Campground.findById(req.params.id, function(err, foundCampground){
         if(err)
         {
@@ -176,6 +173,15 @@ app.post('/login', passport.authenticate('local'), function(req, res) {
     var myToken = jwt.sign({username: req.body.username}, 'pabbudamustang');
     res.status(200).json(myToken);
 });
+
+function isLoggedIn(req, res, next)
+{
+    if(req.isAuthenticated()){
+        return next();
+    }
+    req.flash("oops", "Please login!");
+    res.redirect("/login");
+}
 
 app.listen(process.env.PORT, process.env.IP, function(){
     console.log("YelpCamp server has started");
