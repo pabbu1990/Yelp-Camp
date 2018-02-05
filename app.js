@@ -16,7 +16,8 @@ var express = require("express"),
     
 //var url = process.env.DATABASEURL || "mongodb://localhost/yelp_camp"
 //mongoose.connect(url);
-mongoose.connect("mongodb://pabbu:yelpcamp@ds125113.mlab.com:25113/angular-yelpcamp");
+mongoose.connect("mongodb://pabbu:yelpcamp@ds161890.mlab.com:61890/pabbu_yelpcamp");
+//mongodb://<dbuser>:<dbpassword>@ds161890.mlab.com:61890/pabbu_yelpcamp
 app.set("view engine", "ejs");
 var bodyParser = require("body-parser");
 
@@ -60,7 +61,7 @@ app.use(flash());
 app.get("/campgrounds", function(req, res){
     Campground.find({}, function(err, body){
        if(err){
-           console.log("An error occured: "+err);
+           console.log("An error occured. Look here: "+err);
        } 
        else{
            res.setHeader('Content-Type', 'application/json');
